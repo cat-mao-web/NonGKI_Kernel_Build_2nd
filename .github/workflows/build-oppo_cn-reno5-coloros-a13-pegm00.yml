@@ -1,4 +1,4 @@
-name:Build OPPO Reno5(PEGM00)(ColorOS A13)
+name: Build OPPO Reno5(PEGM00)(ColorOS A13)
 
 on:
   workflow_call:
