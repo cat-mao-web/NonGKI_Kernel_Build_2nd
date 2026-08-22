@@ -116,9 +116,34 @@ jobs:
 
       - name: 🪛 Extra Kernel Options
         run: |
-          # Extra configurations for OPPO Reno5 5G
+          # Fix missing Kconfig files for OPPO Reno5 5G
           cd $GITHUB_WORKSPACE/device_kernel
-          # Add any device-specific modifications here if needed
+
+          # Check if kernel/sched_assist/Kconfig is referenced but missing
+          if grep -q "kernel/sched_assist/Kconfig" init/Kconfig 2>/dev/null; then
+            if [ ! -f "kernel/sched_assist/Kconfig" ]; then
+              echo "Creating missing kernel/sched_assist/Kconfig"
+              mkdir -p kernel/sched_assist
+              cat > kernel/sched_assist/Kconfig << 'EOF'
+# SCHED_ASSIST Kconfig placeholder
+# This file was missing in the original source
+config OPLUS_FEATURE_SCHED_ASSIST
+	bool "OPLUS schedule assist"
+	default n
+	help
+	  Enable OPLUS schedule assist features
+EOF
+            fi
+          fi
+
+          # Check for other potentially missing Kconfig files
+          for kconfig_ref in $(grep -r "source.*Kconfig" init/Kconfig 2>/dev/null | grep -oP '"\K[^"]+'); do
+            if [ ! -f "$kconfig_ref" ]; then
+              echo "Warning: Missing Kconfig file: $kconfig_ref"
+              mkdir -p "$(dirname "$kconfig_ref")"
+              touch "$kconfig_ref"
+            fi
+          done
 
       - name: 🧰 Patch Kernel of Re:Kernel
         uses: ./.github/workflows/patch-rekernel
